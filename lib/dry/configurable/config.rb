@@ -153,6 +153,31 @@ module Dry
         _dry_equalizer_hash
       end
 
+      # Returns a frozen {Data} representation of the config's resolved setting values.
+      #
+      # The Data exposes each setting as a real method, sidestepping the {method_missing}
+      # dispatch on the read path. Intended for performance-sensitive code that reads the same
+      # config repeatedly (e.g. per-request render hot paths). A fresh Data is built per call,
+      # so consumers should memoize the result.
+      #
+      # Only available on a finalized config. Nested configs are converted recursively to nested
+      # Data instances. Values are captured by reference, so in-place mutation of a captured
+      # value remains visible through the Data; finalize with `freeze_values: true` if you want
+      # to prevent that.
+      #
+      # @return [Data]
+      #
+      # @raise [FrozenConfigError] if the config is not yet finalized
+      #
+      # @api public
+      def to_data
+        unless frozen?
+          raise FrozenConfigError, "config must be finalized before #to_data can be called"
+        end
+
+        _settings.data_class.new(**to_data_attrs)
+      end
+
       # @api public
       def finalize!(freeze_values: false)
         return self if frozen?
@@ -181,6 +206,12 @@ module Dry
       end
 
       private
+
+      def to_data_attrs
+        _values.each_with_object({}) do |(name, value), hsh|
+          hsh[name] = value.is_a?(self.class) ? value.to_data : value
+        end
+      end
 
       def method_missing(name, *args)
         setting_name = setting_name_from_method(name)
