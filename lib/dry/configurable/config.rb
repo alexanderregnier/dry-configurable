@@ -165,6 +165,23 @@ module Dry
       # value remains visible through the Data; finalize with `freeze_values: true` if you want
       # to prevent that.
       #
+      # The returned Data uses Ruby's default structural `==`/`eql?`/`hash`. If you want to use
+      # it as an identity-based cache key (e.g. to skip walking N members on every lookup),
+      # memoize the reference yourself and either:
+      #
+      #   1. key it by `object_id` directly:
+      #
+      #        @cached = view_class.config.to_data
+      #        cache[@cached.object_id] = ...
+      #
+      #   2. use a `compare_by_identity` cache:
+      #
+      #        cache = {}.compare_by_identity
+      #        cache[@cached] = ...
+      #
+      # Either avoids the contract-breaking `hash = object_id` override and keeps Data's
+      # structural equality available for general use.
+      #
       # @return [Data]
       #
       # @raise [FrozenConfigError] if the config is not yet finalized
