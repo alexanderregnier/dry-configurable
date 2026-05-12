@@ -153,11 +153,11 @@ module Dry
         _dry_equalizer_hash
       end
 
-      # Returns a frozen {Data} representation of the config's resolved setting values.
+      # Returns a frozen {Data} representation of the config's resolved values.
       #
       # The Data exposes each setting as a real method, sidestepping the {method_missing}
       # dispatch on the read path. Intended for performance-sensitive code that reads the same
-      # config repeatedly (e.g. per-request render hot paths). A fresh Data is built per call,
+      # config repeatedly (e.g. per-request render hot paths). A new object is returned per call,
       # so consumers should memoize the result.
       #
       # Only available on a finalized config. Nested configs are converted recursively to nested
