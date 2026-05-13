@@ -153,6 +153,48 @@ module Dry
         _dry_equalizer_hash
       end
 
+      # Returns a frozen {Data} representation of the config's resolved values.
+      #
+      # The Data exposes each setting as a real method, sidestepping the {method_missing}
+      # dispatch on the read path. Intended for performance-sensitive code that reads the same
+      # config repeatedly (e.g. per-request render hot paths). A new object is returned per call,
+      # so consumers should memoize the result.
+      #
+      # Only available on a finalized config. Nested configs are converted recursively to nested
+      # Data instances. Values are captured by reference, so in-place mutation of a captured
+      # value remains visible through the Data; finalize with `freeze_values: true` if you want
+      # to prevent that.
+      #
+      # The returned Data uses Ruby's default structural `==`/`eql?`/`hash`. If you want to use
+      # it as an identity-based cache key (e.g. to skip walking N members on every lookup),
+      # memoize the reference yourself and either:
+      #
+      #   1. key it by `object_id` directly:
+      #
+      #        @cached = view_class.config.to_data
+      #        cache[@cached.object_id] = ...
+      #
+      #   2. use a `compare_by_identity` cache:
+      #
+      #        cache = {}.compare_by_identity
+      #        cache[@cached] = ...
+      #
+      # Either avoids the contract-breaking `hash = object_id` override and keeps Data's
+      # structural equality available for general use.
+      #
+      # @return [Data]
+      #
+      # @raise [FrozenConfigError] if the config is not yet finalized
+      #
+      # @api public
+      def to_data
+        unless frozen?
+          raise FrozenConfigError, "config must be finalized before #to_data can be called"
+        end
+
+        _settings.data_class.new(**to_data_attrs)
+      end
+
       # @api public
       def finalize!(freeze_values: false)
         return self if frozen?
@@ -181,6 +223,12 @@ module Dry
       end
 
       private
+
+      def to_data_attrs
+        _values.each_with_object({}) do |(name, value), hsh|
+          hsh[name] = value.is_a?(self.class) ? value.to_data : value
+        end
+      end
 
       def method_missing(name, *args)
         setting_name = setting_name_from_method(name)

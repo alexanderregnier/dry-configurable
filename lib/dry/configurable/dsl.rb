@@ -8,6 +8,10 @@ module Dry
     class DSL
       VALID_NAME = /\A[a-z_]\w*\z/i
 
+      # Method names defined on `Data` (and its ancestors) that cannot be used as setting
+      # names because `Data.define` would reject them, which would break {Config#to_data}.
+      DATA_RESERVED_NAMES = ::Data.instance_methods.to_set.freeze
+
       attr_reader :compiler
 
       attr_reader :ast
@@ -29,6 +33,12 @@ module Dry
       def setting(name, **options, &block)
         unless VALID_NAME.match?(name.to_s)
           raise ArgumentError, "#{name} is not a valid setting name"
+        end
+
+        if DATA_RESERVED_NAMES.include?(name.to_sym)
+          raise ArgumentError,
+                "#{name.inspect} is not a valid setting name: it conflicts with a Data " \
+                "instance method, which would break Config#to_data"
         end
 
         ensure_valid_options(options)

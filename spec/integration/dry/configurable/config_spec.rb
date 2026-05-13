@@ -315,6 +315,78 @@ RSpec.describe Dry::Configurable::Config do
     end
   end
 
+  describe "#to_data" do
+    it "raises if the config is not finalized" do
+      klass.setting :db
+
+      expect { klass.config.to_data }.to raise_error(
+        Dry::Configurable::FrozenConfigError,
+        /must be finalized/
+      )
+    end
+
+    it "returns a frozen Data instance with a member for every setting" do
+      klass.setting :db, default: "sqlite"
+      klass.setting :pool, default: 5
+      klass.finalize!
+
+      data = klass.config.to_data
+
+      expect(data).to be_frozen
+      expect(data).to be_a(Data)
+      expect(data.db).to eq("sqlite")
+      expect(data.pool).to eq(5)
+      expect(data.members).to eq(%i[db pool])
+    end
+
+    it "converts nested configs recursively as Data instances" do
+      klass.setting :db do
+        setting :host, default: "localhost"
+        setting :port, default: 5432
+      end
+      klass.finalize!
+
+      data = klass.config.to_data
+
+      expect(data.db).to be_a(Data)
+      expect(data.db).to be_frozen
+      expect(data.db.host).to eq("localhost")
+      expect(data.db.port).to eq(5432)
+    end
+
+    it "returns a fresh but structurally-equal instance per call" do
+      klass.setting :db, default: "sqlite"
+      klass.finalize!
+
+      first = klass.config.to_data
+      second = klass.config.to_data
+
+      expect(first).not_to equal(second)
+      expect(first).to eq(second)
+      expect(first).to eql(second)
+      expect(first.hash).to eq(second.hash)
+    end
+
+    it "shares the underlying Data class across configs with the same schema" do
+      klass.setting :db
+      klass.setting :pool
+
+      first = klass.config.dup.finalize!
+      second = klass.config.dup.finalize!
+
+      expect(first.to_data.class).to equal(second.to_data.class)
+    end
+
+    it "captures mutable values by reference (not deep-frozen by default)" do
+      klass.setting :list, default: []
+      klass.finalize!
+
+      klass.config.list << "added after finalize"
+
+      expect(klass.config.to_data.list).to eq(["added after finalize"])
+    end
+  end
+
   describe "#method_missing" do
     it "provides access to reader methods" do
       klass.setting :hello

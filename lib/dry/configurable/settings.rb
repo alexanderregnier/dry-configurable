@@ -21,12 +21,24 @@ module Dry
       # @api private
       private def initialize_copy(source)
         @settings = source.settings.dup
+        @data_class = nil
       end
 
       # @api private
       def <<(setting)
+        @data_class = nil
         settings[setting.name] = setting
         self
+      end
+
+      # Returns a {Data} class with one member per defined setting, memoized for the lifetime of
+      # the schema. Invalidated when new settings are added.
+      #
+      # @return [Class]
+      #
+      # @api private
+      def data_class
+        @data_class ||= Data.define(*keys)
       end
 
       # Returns the setting for the given name, if found.

@@ -57,6 +57,23 @@ RSpec.describe Dry::Configurable::DSL do
     expect(setting.constructor.("sqlite")).to eq("jdbc:sqlite")
   end
 
+  it "rejects setting names that conflict with Data instance methods" do
+    expect { dsl.setting :hash }.to raise_error(
+      ArgumentError,
+      /:hash is not a valid setting name.*Data instance method.*Config#to_data/
+    )
+
+    expect { dsl.setting :members }.to raise_error(
+      ArgumentError,
+      /:members is not a valid setting name/
+    )
+
+    expect { dsl.setting :class }.to raise_error(
+      ArgumentError,
+      /:class is not a valid setting name/
+    )
+  end
+
   it "compiles a nested list of settings" do
     setting =
       dsl.setting(:db) do

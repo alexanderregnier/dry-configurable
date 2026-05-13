@@ -7,6 +7,10 @@ and this project adheres to [Break Versioning](https://www.taoensso.com/break-ve
 
 ## [Unreleased]
 
+### Added
+
+- Added `Config#to_data`, returning a frozen `Data` representation of the config's resolved values for performance-sensitive read paths (#167 by @cllns)
+
 ### Changed
 
 - Set minimum Ruby version to 3.2 (@alassek)
