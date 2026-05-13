@@ -9,11 +9,7 @@ and this project adheres to [Break Versioning](https://www.taoensso.com/break-ve
 
 ### Added
 
-- Added `Config#to_data`, returning a frozen `Data` representation of the config's resolved values for performance-sensitive read paths. (@cllns in #167)
-
 ### Changed
-
-- Set minimum Ruby version to 3.2. (@alassek)
 
 ### Deprecated
 
@@ -23,7 +19,19 @@ and this project adheres to [Break Versioning](https://www.taoensso.com/break-ve
 
 ### Security
 
-[Unreleased]: https://github.com/dry-rb/dry-configurable/compare/v1.3.0...main
+[Unreleased]: https://github.com/dry-rb/dry-configurable/compare/v1.4.0...main
+
+## [1.4.0] - 2026-05-13
+
+### Added
+
+- Added `Config#to_data`, returning a frozen `Data` representation of the config's resolved values for performance-sensitive read paths. (@cllns in #167)
+
+### Changed
+
+- Set minimum Ruby version to 3.3. (@alassek & @timriley)
+
+[1.4.0]: https://github.com/dry-rb/dry-configurable/compare/v1.3.0...v1.4.0
 
 ## [1.3.0] - 2025-01-04
 
