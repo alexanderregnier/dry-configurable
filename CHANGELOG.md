@@ -15,8 +15,15 @@ and this project adheres to [Break Versioning](https://www.taoensso.com/break-ve
 
 - Set minimum Ruby version to 3.2 (@alassek)
 
-## [1.3.0] - 2025-01-04
+### Deprecated
 
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.3.0] - 2025-01-04
 
 ### Changed
 
